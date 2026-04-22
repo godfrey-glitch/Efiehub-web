@@ -1,4 +1,5 @@
 "use client";
+import { Suspense } from "react";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { createBooking } from "@/lib/bookings";
@@ -9,7 +10,9 @@ import { format } from "date-fns";
 type Status = "verifying" | "success" | "failed";
 interface BookingSummary { listingTitle: string; checkIn: string; checkOut: string; nights: number; totalPrice: number; }
 
-export default function PaystackCallbackPage() {
+const wrapStyle: React.CSSProperties = { minHeight: "90vh", display: "flex", alignItems: "center", justifyContent: "center", padding: "2rem" };
+
+function CallbackContent() {
   const searchParams = useSearchParams();
   const [status, setStatus] = useState<Status>("verifying");
   const [summary, setSummary] = useState<BookingSummary | null>(null);
@@ -33,14 +36,12 @@ export default function PaystackCallbackPage() {
     verify();
   }, [searchParams]);
 
-  const wrapStyle: React.CSSProperties = { minHeight: "90vh", display: "flex", alignItems: "center", justifyContent: "center", padding: "2rem" };
-
   if (status === "verifying") return (
     <div style={{ ...wrapStyle, background: "#f0f9ff" }}>
       <div className="text-center">
         <Loader2 size={40} className="animate-spin mx-auto mb-4" style={{ color: "var(--sky)" }} />
         <p className="font-bold" style={{ color: "var(--ink)" }}>Verifying your payment…</p>
-        <p className="text-sm mt-1" style={{ color: "var(--muted)" }}>Please don't close this page.</p>
+        <p className="text-sm mt-1" style={{ color: "var(--muted)" }}>Please don&apos;t close this page.</p>
       </div>
     </div>
   );
@@ -91,5 +92,20 @@ export default function PaystackCallbackPage() {
         </Link>
       </div>
     </div>
+  );
+}
+
+export default function PaystackCallbackPage() {
+  return (
+    <Suspense fallback={
+      <div style={{ ...wrapStyle, background: "#f0f9ff" }}>
+        <div className="text-center">
+          <Loader2 size={40} className="animate-spin mx-auto mb-4" style={{ color: "var(--sky)" }} />
+          <p className="font-bold" style={{ color: "var(--ink)" }}>Loading…</p>
+        </div>
+      </div>
+    }>
+      <CallbackContent />
+    </Suspense>
   );
 }
